@@ -4,6 +4,7 @@ package traveling_salesman;
  * Created by Michael on 11/4/2018.
  */
 public class GeneticAlgorithm {
+    private final Display display;
     private final double MUTATION_RATE;
     private final int TOURNAMENT_SIZE;
     private final boolean PREFERENTIAL_BEHAVIOR;
@@ -11,7 +12,8 @@ public class GeneticAlgorithm {
     /**
      * Constructs a GeneticAlgorithm with default values for MUTATION_RATE, TOURNAMENT_SIZE, and PREFERENTIAL_BEHAVIOR
      * */
-    public GeneticAlgorithm() {
+    public GeneticAlgorithm(Display display) {
+        this.display = display;
         this.MUTATION_RATE = 0.015;
         this.TOURNAMENT_SIZE = 5;
         this.PREFERENTIAL_BEHAVIOR = true;
@@ -21,7 +23,8 @@ public class GeneticAlgorithm {
     /**
      * Constructs a GeneticAlgorithm with the provided values for MUTATION_RATE, TOURNAMENT_SIZE, and PREFERENTIAL_BEHAVIOR
      * */
-    public GeneticAlgorithm(double mutationRate, int tournamentSize, boolean preferentialBehavior) {
+    public GeneticAlgorithm(Display display, double mutationRate, int tournamentSize, boolean preferentialBehavior) {
+        this.display = display;
         this.MUTATION_RATE = mutationRate;
         this.TOURNAMENT_SIZE = tournamentSize;
         this.PREFERENTIAL_BEHAVIOR = preferentialBehavior;

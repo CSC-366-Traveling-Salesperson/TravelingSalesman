@@ -19,17 +19,34 @@ public class LocationManager {
 
 
     /**
+     * Adds all provided destination Locations
+     * */
+    public static void addAll(HashMap<Integer, Location> locations) {
+        destinationLocations.putAll(locations);
+    }
+
+
+    /**
      * Removes all current destination Locations
      * */
     public static void clearLocations() {
         destinationLocations.clear();
     }
 
+
     /**
      * Retrieves a Location from the set of destination Locations
      * */
     public static Location getLocation(Integer index){
         return destinationLocations.get(index);
+    }
+
+
+    /**
+     * Determines if the set of destination Locations currently contains the provided Location
+     * */
+    public static boolean containsLocation(Location location) {
+        return destinationLocations.containsValue(location);
     }
 
 

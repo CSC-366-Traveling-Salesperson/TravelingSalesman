@@ -1,5 +1,7 @@
 package traveling_salesman;
 
+import java.awt.*;
+import java.awt.geom.Line2D;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -118,6 +120,30 @@ public class Route{
      * */
     public boolean containsLocation(Location location){
         return route.containsValue(location);
+    }
+
+
+    public void draw(Graphics g, Color locationColor, Color edgeColor) {
+        for (Integer index : route.keySet()) {
+            if (index < route.size() - 1) {
+                route.get(index).draw(g, locationColor);
+                drawEdge(g, edgeColor, route.get(index), route.get(index + 1));
+            }else {
+                route.get(index).draw(g, locationColor);
+                drawEdge(g, edgeColor, route.get(index), route.get(0));
+            }
+        }
+    }
+
+
+    private void drawEdge(Graphics g, Color edgeColor, Location fromLocation, Location toLocation) {
+        Graphics2D g2d = (Graphics2D)g.create();
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        g2d.setColor(edgeColor);
+        g2d.draw(new Line2D.Double(fromLocation.getX() + Location.getRadius(), fromLocation.getY() + Location.getRadius(),
+                toLocation.getX() + Location.getRadius(), toLocation.getY() + Location.getRadius()));
+
+        g2d.dispose();
     }
 
 

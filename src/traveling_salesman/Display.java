@@ -2,31 +2,50 @@ package traveling_salesman;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * Created by Michael on 11/4/2018.
  */
 public class Display extends JPanel {
-    private static int GENERATIONS = 200;
     private static int PANEL_WIDTH = 1200;
-    private static int PANEL_HEIGHT = 1000;
-    private static int CANVAS_WIDTH = 1200;
-    private static int CANVAS_HEIGHT = 850;
+    private static int PANEL_HEIGHT = 700;
+    private static int CANVAS_WIDTH = 1000;
+    private static int CANVAS_HEIGHT = 600;
     private static int TEXT_FIELD_WIDTH = 200;
-    private static int TEXT_FIELD_HEIGHT = 50;
+    private static int TEXT_FIELD_HEIGHT = 25;
     private static int BUTTON_WIDTH = 200;
-    private static int BUTTON_HEIGHT = 50;
+    private static int BUTTON_HEIGHT = 25;
+    private static int GENERATIONS = 200;
+    private static int ROUTE_DISPLAY_TIME_MILLIS = 250;
+    private static int POPULATION_SIZE = 50;
+    private static int DEFAULT_TOURNAMENT_SIZE = 5;
+    private static double DEFAULT_RATE = 0.015;
+    private static Color NEW_LOCATION_COLOR = Color.blue;
+    private static Color ROUTE_LOCATION_COLOR = Color.green;
+    private static Color ROUTE_EDGE_COLOR = Color.RED;
     private JFormattedTextField mutationRateDescription;
     private JFormattedTextField tournamentSizeDescription;
+    private JFormattedTextField outputDescription;
     /*private JFormattedTextField preferentialBehaviorDescription;*/
     private JFormattedTextField mutationRate;
     private JFormattedTextField tournamentSize;
+    private JTextArea output;
     private JCheckBox preferentialBehavior;
     private JButton runButton;
     private JButton resetButton;
     private DrawCanvas canvas;
     private GeneticAlgorithm geneticAlgorithm;
+    private HashMap<Integer, Location> selectedLocations;
+    private Queue<Route> drawQueue;
+    private Route currentBestRoute;
 
 
     public Display() throws IOException {
@@ -55,9 +74,36 @@ public class Display extends JPanel {
         constraints.fill = GridBagConstraints.BOTH;
         constraints.weightx = .5;
         constraints.gridwidth = 3;
+        constraints.gridheight = 24;
         constraints.gridx = 0;
         constraints.gridy = 0;
         this.add(canvas, constraints);
+
+        outputDescription = new JFormattedTextField();
+        outputDescription.setText("Output:");
+        outputDescription.setMinimumSize(textFieldMinimumAndPreferredSize);
+        outputDescription.setPreferredSize(textFieldMinimumAndPreferredSize);
+        outputDescription.setEditable(false);
+        outputDescription.setBackground(textFieldDescriptorColor);
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.weightx = .5;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
+        constraints.gridx = 3;
+        constraints.gridy = 0;
+        this.add(outputDescription, constraints);
+
+        output = new JTextArea();
+        output.setMinimumSize(textFieldMinimumAndPreferredSize);
+        output.setEditable(false);
+        output.setBackground(textFieldColor);
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.weightx = .5;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 23;
+        constraints.gridx = 3;
+        constraints.gridy = 1;
+        this.add(output, constraints);
 
         mutationRateDescription = new JFormattedTextField();
         mutationRateDescription.setText("Desired Mutation Rate:");
@@ -68,8 +114,9 @@ public class Display extends JPanel {
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.weightx = .5;
         constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         constraints.gridx = 0;
-        constraints.gridy = 1;
+        constraints.gridy = 25;
         this.add(mutationRateDescription, constraints);
 
         tournamentSizeDescription = new JFormattedTextField();
@@ -80,8 +127,10 @@ public class Display extends JPanel {
         tournamentSizeDescription.setBackground(textFieldDescriptorColor);
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.weightx = .5;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         constraints.gridx = 1;
-        constraints.gridy = 1;
+        constraints.gridy = 25;
         this.add(tournamentSizeDescription, constraints);
 
         /*preferentialBehaviorDescription = new JFormattedTextField();
@@ -101,8 +150,10 @@ public class Display extends JPanel {
         preferentialBehavior.setPreferredSize(textFieldMinimumAndPreferredSize);
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.weightx = .5;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         constraints.gridx = 2;
-        constraints.gridy = 1;
+        constraints.gridy = 25;
         this.add(preferentialBehavior, constraints);
 
         mutationRate = new JFormattedTextField();
@@ -114,8 +165,9 @@ public class Display extends JPanel {
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.weightx = .5;
         constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         constraints.gridx = 0;
-        constraints.gridy = 2;
+        constraints.gridy = 26;
         this.add(mutationRate, constraints);
 
         tournamentSize = new JFormattedTextField();
@@ -126,8 +178,10 @@ public class Display extends JPanel {
         tournamentSize.setBackground(textFieldColor);
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.weightx = .5;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         constraints.gridx = 1;
-        constraints.gridy = 2;
+        constraints.gridy = 26;
         this.add(tournamentSize, constraints);
 
         runButton = new JButton("Run");
@@ -136,8 +190,10 @@ public class Display extends JPanel {
         runButton.setBackground(buttonColor);
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.weightx = .5;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         constraints.gridx = 2;
-        constraints.gridy = 2;
+        constraints.gridy = 26;
         this.add(runButton, constraints);
 
         resetButton = new JButton("Reset");
@@ -146,19 +202,129 @@ public class Display extends JPanel {
         resetButton.setBackground(buttonColor);
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.weightx = .5;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
         constraints.gridx = 3;
-        constraints.gridy = 2;
+        constraints.gridy = 26;
         this.add(resetButton, constraints);
 
-        geneticAlgorithm = new GeneticAlgorithm();
+        geneticAlgorithm = new GeneticAlgorithm(this);
+        selectedLocations = new HashMap<Integer, Location>();
+        drawQueue = new LinkedList<Route>();
+        currentBestRoute = null;
 
         setActionListeners();
 
     }
 
 
-    public void setActionListeners() {
+    private void setActionListeners() {
+        final Display thisDisplay = this;
+        runButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String mutationRateText = mutationRate.getText();
+                String tournamentSizeText = tournamentSize.getText();
+                boolean prefBehav = preferentialBehavior.isSelected();
+                Double rate = null;
+                Integer size = null;
+                String displayMessage = "";
 
+                try {
+                    output.setText("");
+                    rate = Double.parseDouble(mutationRateText);
+                    size = Integer.parseInt(tournamentSizeText);
+
+                    if (rate >= 0.0 && rate <= 1.0) {
+                        displayMessage += "Range for mutation rate accepted.\n";
+                    }else {
+                        rate = DEFAULT_RATE;
+                        displayMessage += "Invalid range for mutation rate. Using default value.\n";
+                    }
+                    if (size > 0) {
+                        displayMessage += "Range for tournament size accepted.\n";
+                    }else {
+                        size = DEFAULT_TOURNAMENT_SIZE;
+                        displayMessage += "Invalid range for tournament size. Using default value.\n";
+                    }
+                }catch (NumberFormatException nfe) {
+                    displayMessage += "Error: value(s) could not be interpreted. Using default values for mutation " +
+                            "rate and tournament size.\n";
+                    rate = DEFAULT_RATE;
+                    size = DEFAULT_TOURNAMENT_SIZE;
+                }
+
+                displayMessage += "Running Algorithm...\n";
+                output.setText(displayMessage);
+
+                /*
+                * Clear old trial data
+                * */
+                drawQueue.clear();
+                currentBestRoute = null;
+                LocationManager.clearLocations();
+
+                /*
+                * Create new algorithm and add to the display queue accordingly, in order of generation number
+                * */
+                geneticAlgorithm = new GeneticAlgorithm(thisDisplay, rate, size, prefBehav);
+                LocationManager.addAll(selectedLocations);
+                Population pop = new Population(POPULATION_SIZE, true);
+                drawQueue.add(pop.getFittest());
+                for (int i = 0; i < GENERATIONS; i++) {
+                    pop = geneticAlgorithm.evolvePopulation(pop);
+                    drawQueue.add(pop.getFittest());
+                    System.out.println(pop.getFittest());
+                }
+                currentBestRoute = pop.getFittest();
+                drawQueue.add(pop.getFittest());
+                System.out.println(pop.getFittest());
+                repaint();
+
+            }
+        });
+
+        resetButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                LocationManager.clearLocations();
+                geneticAlgorithm = null;
+                selectedLocations.clear();
+                drawQueue.clear();
+                currentBestRoute = null;
+                output.setText("Locations Reset");
+                repaint();
+            }
+        });
+
+        canvas.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                selectedLocations.put(selectedLocations.size(), new Location(e.getX(), e.getY()));
+                System.out.println(selectedLocations.toString());
+                repaint();
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+
+            }
+        });
 
     }
 
@@ -167,6 +333,28 @@ public class Display extends JPanel {
 
         public void paintComponent(Graphics g) {
             super.paintComponent(g);
+
+            for (Location location : selectedLocations.values()) {
+                location.draw(g, NEW_LOCATION_COLOR);
+            }
+
+            Route queuedRoute = drawQueue.poll();
+
+            if (queuedRoute != null) {
+                queuedRoute.draw(g, ROUTE_LOCATION_COLOR, ROUTE_EDGE_COLOR);
+                output.setText(queuedRoute.toString() + "\nRoutes Remaining:\t" + drawQueue.size());
+                try {
+                    Thread.sleep(ROUTE_DISPLAY_TIME_MILLIS);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                repaint();
+            }else if (currentBestRoute != null) {
+                currentBestRoute.draw(g, ROUTE_LOCATION_COLOR, ROUTE_EDGE_COLOR);
+                output.setText(currentBestRoute.toString() + "\nRoutes Remaining:\t0");
+            }else {
+                return;
+            }
 
         }
     }
