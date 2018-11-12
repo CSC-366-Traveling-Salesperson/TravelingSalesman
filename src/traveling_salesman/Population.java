@@ -29,7 +29,7 @@ public class Population {
     /**
      * Saves a Route at a particular index in tbe Population
      * */
-    public void saveRoute(int index, Route route) {
+    public synchronized void saveRoute(int index, Route route) {
         population[index] = route;
     }
 
@@ -37,7 +37,7 @@ public class Population {
     /**
      * Retrieves a Route from the Population
      * */
-    public Route getRoute(int index) {
+    public synchronized Route getRoute(int index) {
         return population[index];
     }
 
@@ -45,7 +45,7 @@ public class Population {
     /**
     * Computes and returns the fittest Route in the Population
     * */
-    public Route getFittest() {
+    public synchronized Route getFittest() {
         Route fittestRoute = population[0];
         for (int i = 1; i < population.length; i++) {
             if (fittestRoute.getFitness() <= getRoute(i).getFitness()) {
@@ -59,7 +59,7 @@ public class Population {
     /**
      * Gets the Population size
      * */
-    public int populationSize() {
+    public synchronized int populationSize() {
         return population.length;
     }
 

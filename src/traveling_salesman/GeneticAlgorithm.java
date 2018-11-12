@@ -3,11 +3,12 @@ package traveling_salesman;
 /**
  * Created by Michael on 11/4/2018.
  */
-public class GeneticAlgorithm {
+public class GeneticAlgorithm implements Runnable {
     private final Display display;
     private final double MUTATION_RATE;
     private final int TOURNAMENT_SIZE;
     private final boolean PREFERENTIAL_BEHAVIOR;
+    public static Population population;
 
     /**
      * Constructs a GeneticAlgorithm with default values for MUTATION_RATE, TOURNAMENT_SIZE, and PREFERENTIAL_BEHAVIOR
@@ -30,6 +31,20 @@ public class GeneticAlgorithm {
         this.PREFERENTIAL_BEHAVIOR = preferentialBehavior;
     }
 
+
+    /**
+     * repeats evolving for specified number of generations
+     * had to move this here for multithreading
+     */
+    @Override
+    public void run() {
+        int repetitions = display.getGENERATIONS();
+        for(int i = 0; i < repetitions; i++){
+            population = evolvePopulation(population);
+            display.addToDrawQueue(population.getFittest());
+            display.repaint();
+        }
+    }
 
     /**
      * Evolves a given Population over one generation through the process of:
@@ -151,5 +166,6 @@ public class GeneticAlgorithm {
             }
         }
     }
+
 
 }

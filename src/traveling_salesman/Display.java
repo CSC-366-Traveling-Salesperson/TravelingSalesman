@@ -10,6 +10,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Queue;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by Michael on 11/4/2018.
@@ -28,6 +30,7 @@ public class Display extends JPanel {
     private static int POPULATION_SIZE = 50;
     private static int DEFAULT_TOURNAMENT_SIZE = 5;
     private static double DEFAULT_RATE = 0.015;
+    private static int NUMBEROFTHREADS = 8;
     private static Color NEW_LOCATION_COLOR = Color.blue;
     private static Color ROUTE_LOCATION_COLOR = Color.green;
     private static Color ROUTE_EDGE_COLOR = Color.RED;
@@ -46,9 +49,14 @@ public class Display extends JPanel {
     private HashMap<Integer, Location> selectedLocations;
     private Queue<Route> drawQueue;
     private Route currentBestRoute;
+    //executor to start and stop threads
+    private static ExecutorService executor;
 
 
     public Display() throws IOException {
+
+        executor = Executors.newFixedThreadPool(NUMBEROFTHREADS);
+
         Dimension panelMinimumAndPreferredSize = new Dimension(PANEL_WIDTH, PANEL_HEIGHT);
         Dimension canvasMinimumAndPreferredSize = new Dimension(CANVAS_WIDTH, CANVAS_HEIGHT);
         Dimension textFieldMinimumAndPreferredSize = new Dimension(TEXT_FIELD_WIDTH, TEXT_FIELD_HEIGHT);
@@ -271,16 +279,12 @@ public class Display extends JPanel {
                 LocationManager.addAll(selectedLocations);
                 Population pop = new Population(POPULATION_SIZE, true);
                 drawQueue.add(pop.getFittest());
-                for (int i = 0; i < GENERATIONS; i++) {
-                    pop = geneticAlgorithm.evolvePopulation(pop);
-                    drawQueue.add(pop.getFittest());
-                    System.out.println(pop.getFittest());
+                //set static initial population
+                GeneticAlgorithm.population = pop;
+                //execute desired number of threads
+                for(int i = 0; i < NUMBEROFTHREADS; i++) {
+                    executor.execute(new GeneticAlgorithm(thisDisplay, rate, size, prefBehav));
                 }
-                currentBestRoute = pop.getFittest();
-                drawQueue.add(pop.getFittest());
-                System.out.println(pop.getFittest());
-                repaint();
-
             }
         });
 
@@ -326,6 +330,19 @@ public class Display extends JPanel {
             }
         });
 
+    }
+
+    /**
+     * This method is used to add new route to drawing queue
+     * from GeneticAlgorithm asynchronously
+     * @param route route to add to the queue
+     */
+    public synchronized void addToDrawQueue(Route route){
+        drawQueue.add(route);
+    }
+
+    public synchronized int getGENERATIONS(){
+        return GENERATIONS;
     }
 
 
