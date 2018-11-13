@@ -26,7 +26,7 @@ public class Display extends JPanel {
     private static int BUTTON_WIDTH = 200;
     private static int BUTTON_HEIGHT = 25;
     private static int GENERATIONS = 200;
-    private static int ROUTE_DISPLAY_TIME_MILLIS = 250;
+    private static int ROUTE_DISPLAY_TIME_MILLIS = 50;
     private static int POPULATION_SIZE = 50;
     private static int DEFAULT_TOURNAMENT_SIZE = 5;
     private static double DEFAULT_RATE = 0.015;

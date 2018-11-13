@@ -1,5 +1,8 @@
 package traveling_salesman;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * Created by Michael on 11/4/2018.
  */
@@ -7,6 +10,7 @@ package traveling_salesman;
 
 public class Population {
     private final Route[] population;
+    private final Lock lock = new ReentrantLock();
 
 
     /**
@@ -29,38 +33,59 @@ public class Population {
     /**
      * Saves a Route at a particular index in tbe Population
      * */
-    public synchronized void saveRoute(int index, Route route) {
-        population[index] = route;
+    public void saveRoute(int index, Route route) {
+        lock.lock();
+        try {
+            population[index] = route;
+        } finally {
+            lock.unlock();
+        }
     }
 
 
     /**
      * Retrieves a Route from the Population
      * */
-    public synchronized Route getRoute(int index) {
-        return population[index];
+    public Route getRoute(int index) {
+        lock.lock();
+        try {
+            return population[index];
+        } finally {
+            lock.unlock();
+        }
+
     }
 
 
     /**
     * Computes and returns the fittest Route in the Population
     * */
-    public synchronized Route getFittest() {
-        Route fittestRoute = population[0];
-        for (int i = 1; i < population.length; i++) {
-            if (fittestRoute.getFitness() <= getRoute(i).getFitness()) {
-                fittestRoute = getRoute(i);
+    public Route getFittest() {
+        lock.lock();
+        try {
+            Route fittestRoute = population[0];
+            for (int i = 1; i < population.length; i++) {
+                if (fittestRoute.getFitness() <= getRoute(i).getFitness()) {
+                    fittestRoute = getRoute(i);
+                }
             }
+            return fittestRoute;
+        }finally {
+            lock.unlock();
         }
-        return fittestRoute;
     }
 
 
     /**
      * Gets the Population size
      * */
-    public synchronized int populationSize() {
-        return population.length;
+    public int populationSize() {
+        lock.lock();
+        try {
+            return population.length;
+        }finally {
+            lock.unlock();
+        }
     }
 
 }
