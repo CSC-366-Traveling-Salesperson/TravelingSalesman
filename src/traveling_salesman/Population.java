@@ -1,5 +1,8 @@
 package traveling_salesman;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 /**
  * Created by Michael on 11/4/2018.
  */
@@ -7,6 +10,7 @@ package traveling_salesman;
 
 public class Population {
     private final Route[] population;
+    private final Lock lock = new ReentrantLock();
 
 
     /**
@@ -30,7 +34,12 @@ public class Population {
      * Saves a Route at a particular index in tbe Population
      * */
     public void saveRoute(int index, Route route) {
-        population[index] = route;
+        lock.lock();
+        try {
+            population[index] = route;
+        } finally {
+            lock.unlock();
+        }
     }
 
 
@@ -38,7 +47,13 @@ public class Population {
      * Retrieves a Route from the Population
      * */
     public Route getRoute(int index) {
-        return population[index];
+        lock.lock();
+        try {
+            return population[index];
+        } finally {
+            lock.unlock();
+        }
+
     }
 
 
@@ -46,13 +61,18 @@ public class Population {
     * Computes and returns the fittest Route in the Population
     * */
     public Route getFittest() {
-        Route fittestRoute = population[0];
-        for (int i = 1; i < population.length; i++) {
-            if (fittestRoute.getFitness() <= getRoute(i).getFitness()) {
-                fittestRoute = getRoute(i);
+        lock.lock();
+        try {
+            Route fittestRoute = population[0];
+            for (int i = 1; i < population.length; i++) {
+                if (fittestRoute.getFitness() <= getRoute(i).getFitness()) {
+                    fittestRoute = getRoute(i);
+                }
             }
+            return fittestRoute;
+        }finally {
+            lock.unlock();
         }
-        return fittestRoute;
     }
 
 
@@ -60,7 +80,12 @@ public class Population {
      * Gets the Population size
      * */
     public int populationSize() {
-        return population.length;
+        lock.lock();
+        try {
+            return population.length;
+        }finally {
+            lock.unlock();
+        }
     }
 
 }
