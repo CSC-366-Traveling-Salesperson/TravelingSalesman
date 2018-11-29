@@ -2,9 +2,7 @@ package traveling_salesman;
 
 import java.awt.*;
 import java.awt.geom.Line2D;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 
 /**
  * Created by Michael on 11/4/2018.
@@ -60,6 +58,20 @@ public class Route{
         * */
         fitness = 0.0;
         distance = 0.0;
+    }
+
+    /**
+     * Finds an location index for some location
+     * @param location
+     * @return
+     */
+    public int positionOfLocation(Location location){
+        for(Map.Entry<Integer, Location> entry : route.entrySet()){
+            if(Objects.equals(location, entry.getValue())){
+                return entry.getKey();
+            }
+        }
+        return -1;
     }
 
 
