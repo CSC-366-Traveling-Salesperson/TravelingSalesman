@@ -1,5 +1,7 @@
 package traveling_salesman;
 
+import java.util.concurrent.ThreadLocalRandom;
+
 /**
  * Created by Michael on 11/4/2018.
  */
@@ -113,19 +115,86 @@ public class GeneticAlgorithm implements Runnable {
      *     * TODO -------- method?
     * */
     public Route crossover(Route parent1, Route parent2) {
+
+        String crossoverType = "orderCrossover";
+        if(display != null) {
+            crossoverType = display.getCrossoverType();
+        }
+
+        if(crossoverType.equals("cycleCrossover")){
+            return cycleCrossover(parent1, parent2);
+        } else if (crossoverType.equals("orderCrossover")){
+            return orderCrossover(parent1, parent2);
+        } else if(crossoverType.equals("modifierCrossover")){
+            return modifierCrossover(parent1, parent2);
+        } else if(crossoverType.equals("positionBasedCrossover")){
+            return positionBasedCrossover(parent1, parent2);
+        }
+
+        return null;
+    }
+
+    /**
+     * This crossover copies city from first parent, then get city
+     * at same index from second parent, finds that city in first parent
+     * and copies it until loops back to initial city, then spaces are filled
+     * from second parent
+     * @param parent1
+     * @param parent2
+     * @return
+     */
+    private Route cycleCrossover(Route parent1, Route parent2){
+        int routeSize = parent1.routeSize();
+        Route child = new Route();
+
+        //starting index
+        int initIndex = ThreadLocalRandom.current().nextInt(routeSize);
+
+        //copy initial city to child and same position
+        Location firstLocation = parent1.getLocation(initIndex);
+        child.setLocation(initIndex, firstLocation);
+
+        //location at same index as parent1 but from parent2
+        Location secondLocation = parent2.getLocation(initIndex);
+
+        //index of location from parent2 in parent1
+        int index = parent1.positionOfLocation(secondLocation);
+
+        //copy corresponding cities until looped back to first city
+        while (initIndex != index){
+            secondLocation = parent2.getLocation(index);
+            index = parent1.positionOfLocation(secondLocation);
+            child.setLocation(index, parent1.getLocation(index));
+        }
+
+        child = fillRemaining(parent2, child);
+
+        return child;
+
+    }
+
+    /**
+     * This type of crossover copies some part of solution from first
+     * parent preserving same locations and then persists remaining cities from
+     * second parent
+     * @param parent1
+     * @param parent2
+     * @return
+     */
+    private Route orderCrossover(Route parent1, Route parent2){
         assert parent1.routeSize() == parent2.routeSize();
         Route child = new Route();
         int routeSize = parent1.routeSize();
 
         /*
-        * Allocate a section of parent1's genes to persist to the new generation
-        * */
+         * Allocate a section of parent1's genes to persist to the new generation
+         * */
         int startPos = (int) (Math.random() * parent1.routeSize());
         int endPos = startPos + (int) (Math.random() * (parent1.routeSize() - startPos));
 
         /*
-        * Persist the allocated section of parent1's genes to the new generation
-        * */
+         * Persist the allocated section of parent1's genes to the new generation
+         * */
         for (int i = 0; i < endPos; i++) {
             if (startPos <= i) {
                 child.setLocation(i, parent1.getLocation(i));
@@ -133,8 +202,8 @@ public class GeneticAlgorithm implements Runnable {
         }
 
         /*
-        * Persist the remaining genes from parent2 to the new generation
-        * */
+         * Persist the remaining genes from parent2 to the new generation
+         * */
         for (int i = 0; i < routeSize; i++) {
             if (!child.containsLocation(parent2.getLocation(i))) {
                 for (int j = 0; j < routeSize; j++) {
@@ -148,6 +217,85 @@ public class GeneticAlgorithm implements Runnable {
 
         return child;
     }
+
+
+    /**
+     * This is essentially one-point crossover where random number of
+     * first elements is copied from parent1 and rest is filled with
+     * cities from parent2
+     * @param parent1
+     * @param parent2
+     * @return
+     */
+    private Route modifierCrossover(Route parent1, Route parent2){
+        int routeSize = parent1.routeSize();
+
+        //Generate random cut point
+        int rand = ThreadLocalRandom.current().nextInt(routeSize);
+        Route child = new Route();
+
+        //copy initial part from first parent
+        for(int i = 0; i < rand; i ++){
+            child.setLocation(i, parent1.getLocation(i));
+        }
+
+        child = fillRemaining(parent2, child);
+        return child;
+
+    }
+
+    /**
+     * a subset of random positions is selected from parent1 and copied to the child,
+     * then remaining spots are filled from parent2
+     * @param parent1
+     * @param parent2
+     * @return
+     */
+    private Route positionBasedCrossover(Route parent1, Route parent2){
+        int routeSize = parent1.routeSize();
+        Route child = new Route();
+
+        //generate random subset size
+        int subSize = ThreadLocalRandom.current().nextInt(routeSize + 1);
+
+        //copy subSize number of cities preserving location
+        for(int i = 0; i < subSize; i++){
+            //generate random city index to copy from parent1
+            int randInd = ThreadLocalRandom.current().nextInt(routeSize);
+            //copy to child
+            child.setLocation(randInd, parent1.getLocation(randInd));
+        }
+
+        child = fillRemaining(parent2, child);
+
+        return child;
+
+    }
+
+    /**
+     * Fills null locations of child with locations from parent
+     * non repeating and preserving order
+     * @param parent
+     * @param child
+     * @return
+     */
+    private Route fillRemaining(Route parent, Route child){
+        int routeSize = parent.routeSize();
+        //copy remaining cities from parent2, replacing repetitions
+        for(int i = 0; i < routeSize; i ++){
+            if(child.getLocation(i) == null){
+                //look for next non repeating location from parent2
+                for(int k = 0; k < routeSize; k++){
+                    if(!child.containsLocation(parent.getLocation(k))){
+                        child.setLocation(i, parent.getLocation(k));
+                        break;
+                    }
+                }
+            }
+        }
+        return child;
+    }
+
 
 
     /**

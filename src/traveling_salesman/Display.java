@@ -2,10 +2,7 @@ package traveling_salesman;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.event.*;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -44,6 +41,7 @@ public class Display extends JPanel {
     private JCheckBox preferentialBehavior;
     private JButton runButton;
     private JButton resetButton;
+    private JComboBox crossoverBox;
     private DrawCanvas canvas;
     private GeneticAlgorithm geneticAlgorithm;
     private HashMap<Integer, Location> selectedLocations;
@@ -192,6 +190,20 @@ public class Display extends JPanel {
         constraints.gridy = 26;
         this.add(tournamentSize, constraints);
 
+        String crossovers[] = {"modifierCrossover", "orderCrossover", "positionBasedCrossover", "cycleCrossover"};
+        crossoverBox = new JComboBox(crossovers);
+        crossoverBox.setMinimumSize(buttonMinimumAndPreferredSize);
+        crossoverBox.setPreferredSize(buttonMinimumAndPreferredSize);
+        crossoverBox.setBackground(buttonColor);
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.weightx = .5;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
+        constraints.gridx = 2;
+        constraints.gridy = 26;
+        this.add(crossoverBox, constraints);
+
+
         runButton = new JButton("Run");
         runButton.setMinimumSize(buttonMinimumAndPreferredSize);
         runButton.setPreferredSize(buttonMinimumAndPreferredSize);
@@ -200,9 +212,10 @@ public class Display extends JPanel {
         constraints.weightx = .5;
         constraints.gridwidth = 1;
         constraints.gridheight = 1;
-        constraints.gridx = 2;
+        constraints.gridx = 3;
         constraints.gridy = 26;
         this.add(runButton, constraints);
+
 
         resetButton = new JButton("Reset");
         resetButton.setMinimumSize(buttonMinimumAndPreferredSize);
@@ -212,7 +225,7 @@ public class Display extends JPanel {
         constraints.weightx = .5;
         constraints.gridwidth = 1;
         constraints.gridheight = 1;
-        constraints.gridx = 3;
+        constraints.gridx = 4;
         constraints.gridy = 26;
         this.add(resetButton, constraints);
 
@@ -381,4 +394,7 @@ public class Display extends JPanel {
         return new Dimension(CANVAS_WIDTH, CANVAS_HEIGHT);
     }
 
+    public String getCrossoverType() {
+        return crossoverBox.getSelectedItem().toString();
+    }
 }
