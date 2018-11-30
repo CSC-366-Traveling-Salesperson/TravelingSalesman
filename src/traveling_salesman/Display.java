@@ -1,8 +1,10 @@
 package traveling_salesman;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -39,6 +41,7 @@ public class Display extends JPanel {
     private JFormattedTextField tournamentSize;
     private JTextArea output;
     private JCheckBox preferentialBehavior;
+    private JCheckBox mapChoice;
     private JButton runButton;
     private JButton resetButton;
     private JComboBox crossoverBox;
@@ -154,6 +157,7 @@ public class Display extends JPanel {
         preferentialBehavior = new JCheckBox("Toggle Preferential Behavior", true);
         preferentialBehavior.setMinimumSize(textFieldMinimumAndPreferredSize);
         preferentialBehavior.setPreferredSize(textFieldMinimumAndPreferredSize);
+        preferentialBehavior.setForeground(Color.white);
         constraints.fill = GridBagConstraints.HORIZONTAL;
         constraints.weightx = .5;
         constraints.gridwidth = 1;
@@ -161,6 +165,18 @@ public class Display extends JPanel {
         constraints.gridx = 2;
         constraints.gridy = 25;
         this.add(preferentialBehavior, constraints);
+
+        mapChoice = new JCheckBox("Enable Map", true);
+        mapChoice.setMinimumSize(textFieldMinimumAndPreferredSize);
+        mapChoice.setPreferredSize(textFieldMinimumAndPreferredSize);
+        mapChoice.setForeground(Color.white);
+        constraints.fill = GridBagConstraints.HORIZONTAL;
+        constraints.weightx = .5;
+        constraints.gridwidth = 1;
+        constraints.gridheight = 1;
+        constraints.gridx = 3;
+        constraints.gridy = 25;
+        this.add(mapChoice, constraints);
 
         mutationRate = new JFormattedTextField();
         mutationRate.setText("");
@@ -363,6 +379,16 @@ public class Display extends JPanel {
 
         public void paintComponent(Graphics g) {
             super.paintComponent(g);
+
+            if(mapChoice.isSelected()) {
+                try {
+                    Image img = ImageIO.read(Display.class.getResource("map.png"));
+                    g.drawImage(img, 0, 0, null);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
 
             for (Location location : selectedLocations.values()) {
                 location.draw(g, NEW_LOCATION_COLOR);
